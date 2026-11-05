@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hulaim — Designer &amp; Developer</title>
+<meta name="description" content="Hulaim is an independent designer and developer making websites, motion and small web tools.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== TOKENS & BASE ===================== */
+:root{
+  --sand:#d2c8b2;
+  --ink:#476752;
+  --line:rgba(71,103,82,.35);
+  --serif:'Instrument Serif',Georgia,serif;
+  --mono:'DM Mono',ui-monospace,Menlo,monospace;
+  --pad:clamp(1rem,3.2vw,2.75rem);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--sand)}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+body{background:var(--sand);color:var(--ink);font:400 .875rem/1.65 var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body.is-locked{overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+ul{list-style:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid currentColor;outline-offset:5px}
+.skip{position:fixed;left:var(--pad);top:-4rem;z-index:300;background:var(--ink);color:var(--sand);padding:.6rem 1rem}
+.skip:focus{top:var(--pad)}
+.mask{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.08em;margin-bottom:-.08em}
+.mask>span{display:inline-block;will-change:transform}
+.art{display:block;width:100%;height:100%}
+.art--img{object-fit:cover}
+.art .a{fill:var(--ink)}.art .b{fill:var(--sand)}.art .s{fill:none;stroke:var(--sand);stroke-width:2}.art .t{fill:var(--ink)}
+
+/* ===================== CUSTOM CURSOR ===================== */
+.cursor{position:fixed;left:0;top:0;z-index:400;pointer-events:none;display:none}
+body.has-cursor .cursor{display:block}
+body.has-cursor,body.has-cursor a,body.has-cursor button{cursor:none}
+.cursor i{position:absolute;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--ink);border:1px solid var(--ink);display:grid;place-items:center;font:500 .7rem/1 var(--mono);color:var(--sand);transition:width .35s,height .35s,margin .35s,background .25s,border-color .25s,color .25s}
+.cursor[data-state="link"] i{width:46px;height:46px;margin:-23px 0 0 -23px;background:transparent}
+.cursor[data-state="view"] i,.cursor[data-state="drag"] i{width:88px;height:88px;margin:-44px 0 0 -44px}
+.cursor.on-ink i{background:var(--sand);border-color:var(--sand);color:var(--ink)}
+.cursor.on-ink[data-state="link"] i{background:transparent}
+
+/* ===================== LOADER ===================== */
+#loader{position:fixed;inset:0;z-index:500;background:var(--ink);color:var(--sand);display:flex;align-items:flex-end;justify-content:space-between;padding:var(--pad)}
+.loader__word{font:400 clamp(4rem,19vw,17rem)/.85 var(--serif);letter-spacing:-.05em;display:flex}
+.loader__word .mask{padding-right:.01em}
+.loader__count{font-size:.8rem;position:absolute;top:var(--pad);right:var(--pad)}
+
+/* ===================== HEADER & NAV ===================== */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.1rem var(--pad);transition:color .3s}
+.site-header.is-ink{color:var(--sand)}
+.logo{font:400 1.7rem/1 var(--serif);letter-spacing:-.03em}
+.nav{display:none;gap:2.2rem}
+.nav a{position:relative;padding:.2rem 0}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.nav a:hover::after,.nav a:focus-visible::after{transform:scaleX(1)}
+.menu-btn{padding:.5rem 0;position:relative;z-index:160}
+@media(min-width:800px){.nav{display:flex}.menu-btn{display:none}}
+
+/* ===================== MOBILE MENU ===================== */
+#menu{position:fixed;inset:0;z-index:90;background:var(--ink);color:var(--sand);display:flex;flex-direction:column;justify-content:flex-end;padding:var(--pad);clip-path:inset(0 0 100% 0)}
+.menu__list li{border-top:1px solid rgba(210,200,178,.3);overflow:hidden}
+.menu__list a{display:flex;justify-content:space-between;align-items:baseline;font:400 clamp(3rem,15vw,6rem)/1.1 var(--serif);letter-spacing:-.04em;padding:.1em 0}
+.menu__list small{font:400 .75rem var(--mono);letter-spacing:0}
+.menu__foot{display:flex;justify-content:space-between;margin-top:1.5rem;font-size:.8rem}
+
+/* ===================== HERO ===================== */
+#hero{position:relative;min-height:100svh;overflow:hidden}
+.hero__time{position:absolute;left:var(--pad);top:22vh;display:flex;flex-direction:column}
+.hero__time b{font-weight:500;font-size:1.6rem;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.hero__intro{position:absolute;right:var(--pad);top:44vh;width:min(27ch,62vw)}
+.hero__orb{position:absolute;right:-16vw;top:8vh;width:min(62vw,52rem);aspect-ratio:1;pointer-events:none}
+.hero__word{position:absolute;left:-.025em;bottom:-.1em;font:400 30vw/.82 var(--serif);letter-spacing:-.06em;display:flex;white-space:nowrap}
+.hero__word .mask{padding-top:.04em}
+.hero__cue{position:absolute;right:var(--pad);bottom:var(--pad);display:flex;flex-direction:column;align-items:center;gap:.7rem;font-size:.75rem;writing-mode:vertical-rl}
+.hero__cue i{display:block;width:1px;height:4.5rem;background:var(--line);position:relative;overflow:hidden}
+.hero__cue i::after{content:"";position:absolute;inset:0;background:var(--ink);animation:cue 2s cubic-bezier(.7,0,.3,1) infinite}
+@keyframes cue{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
+
+/* ===================== SELECTED WORK ===================== */
+#work{padding:18vh var(--pad) 14vh}
+.work__head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6vh}
+.work__head h2,.about__label,.svc__title,.contact__label{font:400 clamp(2.6rem,6vw,5.5rem)/.95 var(--serif);letter-spacing:-.04em}
+.work__row{width:100%;display:grid;grid-template-columns:3.2rem 1fr;gap:1rem;align-items:baseline;border-top:1px solid var(--line);padding:1.4rem 0;transition:opacity .4s}
+.work__list li:last-child{border-bottom:1px solid var(--line)}
+.work__yr{font-size:.8rem}
+.work__t{font:400 clamp(2.4rem,8vw,7.5rem)/1 var(--serif);letter-spacing:-.05em;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.work__r{display:none;font-size:.8rem;text-align:right}
+@media(min-width:800px){
+  .work__row{grid-template-columns:5rem 1fr 15rem}
+  .work__r{display:block}
+  .work__list li:nth-child(even) .work__t{padding-left:14vw}
+}
+@media(hover:hover){
+  .work__list:hover .work__row:not(:hover):not(:focus-visible){opacity:.25}
+  .work__row:hover .work__t,.work__row:focus-visible .work__t{transform:translateX(1.6vw);font-style:italic}
+}
+.preview{position:fixed;left:0;top:0;width:clamp(13rem,20vw,19rem);aspect-ratio:4/5;z-index:60;pointer-events:none;opacity:0;visibility:hidden;overflow:hidden;border:1px solid var(--ink);transition:opacity .35s,visibility .35s;will-change:transform}
+.preview.is-on{opacity:1;visibility:visible}
+
+/* ===================== CASE-STUDY OVERLAY ===================== */
+#case{position:fixed;inset:0;z-index:200;background:var(--sand)}
+.case__bar{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:1.1rem var(--pad);background:var(--sand);border-bottom:1px solid var(--line)}
+.case__scroll{height:100%;overflow-y:auto;padding-top:4rem;overscroll-behavior:contain}
+.case__head{padding:8vh var(--pad) 5vh}
+.case__meta{margin-bottom:1.2rem}
+#case-title{font:400 clamp(3.4rem,15vw,15rem)/.85 var(--serif);letter-spacing:-.06em;margin-left:-.03em}
+.case__hero{margin:0 var(--pad) 0 22vw;height:min(80vh,56rem);overflow:hidden;border:1px solid var(--ink)}
+.case__hero .art{height:125%}
+.case__body{display:grid;gap:2.5rem;padding:10vh var(--pad);max-width:78rem}
+.case__facts{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem 1rem}
+.case__facts dt{font-size:.75rem;opacity:.75}
+.case__facts dd{font:400 1.5rem/1.15 var(--serif);letter-spacing:-.02em}
+.case__text{font:400 clamp(1.5rem,3vw,2.6rem)/1.15 var(--serif);letter-spacing:-.02em}
+@media(min-width:900px){.case__body{grid-template-columns:20rem 1fr;margin-left:22vw}}
+.case__strip{display:flex;gap:1rem;overflow-x:auto;padding:0 var(--pad) 8vh;scrollbar-width:none;user-select:none}
+.case__strip::-webkit-scrollbar{display:none}
+.case__strip>div{flex:0 0 min(70vw,26rem);aspect-ratio:4/5;border:1px solid var(--ink);overflow:hidden;pointer-events:none}
+.case__next{display:flex;justify-content:space-between;align-items:baseline;width:100%;padding:3rem var(--pad);background:var(--ink);color:var(--sand)}
+.case__next b{font:400 clamp(2.4rem,8vw,7rem)/1 var(--serif);letter-spacing:-.05em}
+
+/* ===================== ABOUT ===================== */
+#about{position:relative;padding:16vh var(--pad) 20vh;overflow:hidden}
+.about__grid{display:grid;gap:2rem}
+.about__text{font:400 clamp(2rem,5.4vw,5.4rem)/1.04 var(--serif);letter-spacing:-.035em;max-width:17em}
+.about__text .aw{opacity:.16;display:inline-block;margin-right:.22em}
+.about__note{max-width:30ch;margin-top:3rem}
+.about__shape{position:absolute;left:-14vw;bottom:-12vw;width:min(46vw,38rem);aspect-ratio:1;pointer-events:none;opacity:.9}
+@media(min-width:900px){
+  .about__grid{grid-template-columns:1fr 5fr}
+  .about__note{margin-left:auto;margin-right:6vw}
+}
+
+/* ===================== MARQUEE ===================== */
+#marquee{position:relative;z-index:2;margin:-3vh -4vw 3vh;padding:1.1rem 0;background:var(--ink);color:var(--sand);transform:rotate(-2deg);overflow:hidden}
+.marquee__track{display:flex;width:max-content;animation:marquee 34s linear infinite}
+.marquee__group{display:flex;align-items:center;gap:2.5rem;padding-right:2.5rem;font:italic 400 clamp(2.4rem,6.5vw,6rem)/1.1 var(--serif);letter-spacing:-.04em;white-space:nowrap}
+.marquee__dot{width:.42em;height:.42em;border:1px solid currentColor;border-radius:50%}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ===================== SERVICES / CAPABILITIES ===================== */
+#services{padding:14vh var(--pad) 18vh;display:grid;gap:3rem}
+.svc__title{align-self:start}
+.svc__row{border-top:1px solid var(--line)}
+.svc__list li:last-child{border-bottom:1px solid var(--line)}
+.svc__btn{width:100%;display:grid;grid-template-columns:3rem 1fr 2rem;align-items:center;gap:1rem;padding:1.5rem 0}
+.svc__name{font:400 clamp(1.9rem,4vw,3.6rem)/1.05 var(--serif);letter-spacing:-.04em;transition:transform .4s}
+.svc__btn:hover .svc__name{transform:translateX(.6rem)}
+.svc__plus{position:relative;width:1.2rem;height:1.2rem;justify-self:end}
+.svc__plus::before,.svc__plus::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:currentColor;transition:transform .4s}
+.svc__plus::after{transform:rotate(90deg)}
+.svc__btn[aria-expanded="true"] .svc__plus::after{transform:rotate(0)}
+.svc__panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s cubic-bezier(.2,.8,.2,1)}
+.svc__btn[aria-expanded="true"]+.svc__panel{grid-template-rows:1fr}
+.svc__inner{overflow:hidden;padding-left:4rem}
+.svc__inner p{max-width:46ch;margin-bottom:1rem}
+.svc__tags{display:flex;flex-wrap:wrap;gap:.5rem;padding-bottom:1.8rem}
+.svc__tags li{border:1px solid var(--ink);padding:.1rem .8rem;border-radius:2rem;font-size:.78rem}
+@media(min-width:900px){#services{grid-template-columns:4fr 8fr;gap:4rem}.svc__title{position:sticky;top:18vh}}
+
+/* ===================== CONTACT & FOOTER ===================== */
+#contact{background:var(--ink);color:var(--sand);padding:16vh var(--pad) 2rem;position:relative;overflow:hidden}
+.contact__label{display:block;margin-bottom:6vh}
+.contact__mail{display:inline-block;font:400 clamp(2.2rem,10.4vw,11rem)/1 var(--serif);letter-spacing:-.05em;margin-left:-.04em;position:relative}
+.contact__mail::after{content:"";position:absolute;left:.04em;right:0;bottom:.04em;height:2px;background:var(--sand);transform:scaleX(.0);transform-origin:left;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.contact__mail:hover::after,.contact__mail:focus-visible::after{transform:scaleX(1)}
+.contact__info{display:grid;gap:2rem;margin-top:10vh;padding-top:1.5rem;border-top:1px solid rgba(210,200,178,.35)}
+.contact__info h3{font-weight:400;opacity:.7;font-size:.78rem}
+.footer__social{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem}
+.footer__social a{display:inline-block;padding:.1rem 0;border-bottom:1px solid transparent}
+.footer__social a:hover{border-color:var(--sand)}
+.footer__base{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:8vh;font-size:.78rem}
+@media(min-width:800px){.contact__info{grid-template-columns:repeat(3,1fr)}}
+
+/* ===================== REDUCED MOTION ===================== */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+  .marquee__track{transform:none}
+  .hero__cue i::after{transform:none}
+}
+</style>
+</head>
+
+<body>
+<a class="skip" href="#work">Skip to selected work</a>
+<div class="cursor" aria-hidden="true"><i></i></div>
+
+<!-- ===================== LOADER ===================== -->
+<div id="loader" data-ink aria-hidden="true">
+  <div class="loader__word"></div>
+  <span class="loader__count">0%</span>
+</div>
+
+<!-- ===================== MOBILE MENU ===================== -->
+<nav id="menu" data-ink aria-label="Mobile" hidden>
+  <ul class="menu__list">
+    <li><a href="#work" data-scroll>Work <small class="js-count"></small></a></li>
+    <li><a href="#about" data-scroll>About</a></li>
+    <li><a href="#services" data-scroll>Services</a></li>
+    <li><a href="#contact" data-scroll>Contact</a></li>
+  </ul>
+  <div class="menu__foot"><span>Local time <span class="js-time">--:--:--</span></span><span>Open for bookings</span></div>
+</nav>
+
+<div id="page">
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <a class="logo" href="#hero" data-scroll aria-label="Hulaim, back to top">Hulaim</a>
+  <nav class="nav" aria-label="Primary">
+    <a href="#work" data-scroll>Work</a>
+    <a href="#about" data-scroll>About</a>
+    <a href="#services" data-scroll>Services</a>
+    <a href="#contact" data-scroll>Contact</a>
+  </nav>
+  <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="menu" data-magnetic>Menu</button>
+</header>
+
+<main id="main">
+<!-- ===================== HERO ===================== -->
+<section id="hero" aria-label="Introduction">
+  <svg class="hero__orb" viewBox="0 0 400 400" aria-hidden="true" data-parallax-rotate>
+    <g fill="none" stroke="#476752" stroke-width="1">
+      <circle cx="200" cy="200" r="198"/><circle cx="200" cy="200" r="150"/><circle cx="200" cy="200" r="102"/><circle cx="200" cy="200" r="54"/>
+      <path d="M200 2V398M2 200H398" opacity=".5"/>
+    </g>
+    <circle cx="200" cy="52" r="14" fill="#476752"/>
+  </svg>
+  <p class="hero__time"><span>Local time, Dubai</span><b class="js-time">--:--:--</b></p>
+  <p class="hero__intro">Hulaim is an independent designer and developer. Websites, motion and small web tools for studios and shops.</p>
+  <h1 class="hero__word" aria-label="Hulaim"></h1>
+  <a class="hero__cue" href="#work" data-scroll><span>Scroll</span><i></i></a>
+</section>
+
+<!-- ===================== SELECTED WORK ===================== -->
+<section id="work" aria-labelledby="work-title">
+  <div class="work__head"><h2 id="work-title" class="split">Selected work</h2><span class="js-years"></span></div>
+  <ul class="work__list" id="work-list"></ul>
+</section>
+
+<!-- ===================== MARQUEE ===================== -->
+<div id="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <div class="marquee__group"><span>Websites</span><i class="marquee__dot"></i><span>Motion</span><i class="marquee__dot"></i><span>Systems</span><i class="marquee__dot"></i><span>Web tools</span><i class="marquee__dot"></i></div>
+  </div>
+</div>
+
+<!-- ===================== ABOUT ===================== -->
+<section id="about" aria-labelledby="about-label">
+  <svg class="about__shape" viewBox="0 0 400 400" aria-hidden="true" data-parallax="-12"><path d="M0 400A400 400 0 0 1 400 400z" fill="#476752" opacity=".9"/><path d="M60 400A140 140 0 0 1 340 400z" fill="#d2c8b2"/></svg>
+  <div class="about__grid">
+    <h2 id="about-label" class="about__label split">About</h2>
+    <div>
+      <p class="about__text" id="about-text">I make websites that move with intent, motion that earns its seconds, and small tools that quietly do their job. I work alone, answer fast, and care about the last ten percent of every detail.</p>
+      <p class="about__note">Based in the Gulf and working with law firms, local businesses and studios anywhere. Previously a lot of spreadsheets and front desks, now pixels.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SERVICES / CAPABILITIES ===================== -->
+<section id="services" aria-labelledby="svc-title">
+  <h2 id="svc-title" class="svc__title split">Capabilities</h2>
+  <ul class="svc__list" id="svc-list">
+    <li class="svc__row">
+      <button class="svc__btn" id="svc-b1" aria-expanded="true" aria-controls="svc-p1"><span>01</span><span class="svc__name">Web design &amp; development</span><i class="svc__plus"></i></button>
+      <div class="svc__panel" id="svc-p1" role="region" aria-labelledby="svc-b1"><div class="svc__inner"><p>Editorial sites on WordPress and Elementor, or hand-coded when the brief calls for it. Fast, accessible and easy for clients to edit.</p><ul class="svc__tags"><li>WordPress</li><li>Elementor</li><li>GSAP</li><li>Performance</li></ul></div></div>
+    </li>
+    <li class="svc__row">
+      <button class="svc__btn" id="svc-b2" aria-expanded="false" aria-controls="svc-p2"><span>02</span><span class="svc__name">Motion graphics</span><i class="svc__plus"></i></button>
+      <div class="svc__panel" id="svc-p2" role="region" aria-labelledby="svc-b2"><div class="svc__inner"><p>Titles, product loops and social cuts. From storyboard to final render, with 3D where it adds depth.</p><ul class="svc__tags"><li>After Effects</li><li>Blender</li><li>Title design</li></ul></div></div>
+    </li>
+    <li class="svc__row">
+      <button class="svc__btn" id="svc-b3" aria-expanded="false" aria-controls="svc-p3"><span>03</span><span class="svc__name">Interaction systems</span><i class="svc__plus"></i></button>
+      <div class="svc__panel" id="svc-p3" role="region" aria-labelledby="svc-b3"><div class="svc__inner"><p>Scroll stories, cursor states and animated components, delivered as reusable pieces your team can maintain.</p><ul class="svc__tags"><li>ScrollTrigger</li><li>Lenis</li><li>Component libraries</li></ul></div></div>
+    </li>
+    <li class="svc__row">
+      <button class="svc__btn" id="svc-b4" aria-expanded="false" aria-controls="svc-p4"><span>04</span><span class="svc__name">Web tools</span><i class="svc__plus"></i></button>
+      <div class="svc__panel" id="svc-p4" role="region" aria-labelledby="svc-b4"><div class="svc__inner"><p>Small utilities such as PDF tools, calculators and forms. Deployed, branded and localised for a niche audience.</p><ul class="svc__tags"><li>Open source</li><li>Right-to-left layouts</li><li>Deployment</li></ul></div></div>
+    </li>
+  </ul>
+</section>
+</main>
+
+<!-- ===================== CONTACT & FOOTER ===================== -->
+<section id="contact" data-ink aria-labelledby="contact-label">
+  <h2 id="contact-label" class="contact__label split">Have a project in mind?</h2>
+  <a class="contact__mail" href="mailto:hello@hulaim.studio" data-magnetic="0.1" data-cursor="link">hello@hulaim.studio</a>
+  <div class="contact__info">
+    <div><h3>Availability</h3><p>Booking projects from November</p></div>
+    <div><h3>Local time</h3><p class="js-time">--:--:--</p></div>
+    <div><h3>Elsewhere</h3>
+      <ul class="footer__social">
+        <li><a href="#" data-magnetic="0.25">Instagram</a></li><li><a href="#" data-magnetic="0.25">Behance</a></li><li><a href="#" data-magnetic="0.25">Dribbble</a></li><li><a href="#" data-magnetic="0.25">LinkedIn</a></li><li><a href="#" data-magnetic="0.25">GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="footer__base"><span>© 2026 Hulaim. All rights reserved.</span><a href="#hero" data-scroll>Back to top</a></footer>
+</section>
+</div>
+
+<!-- ===================== CASE-STUDY OVERLAY ===================== -->
+<div id="case" role="dialog" aria-modal="true" aria-labelledby="case-title" hidden>
+  <div class="case__bar"><span class="case__idx"></span><button id="case-close" data-magnetic>Close</button></div>
+  <div class="case__scroll" data-lenis-prevent>
+    <header class="case__head"><p class="case__meta"></p><h2 id="case-title"></h2></header>
+    <div class="case__hero"></div>
+    <div class="case__body">
+      <dl class="case__facts"></dl>
+      <p class="case__text"></p>
+    </div>
+    <div class="case__strip" data-cursor="drag" aria-label="Project gallery, drag to scroll"></div>
+    <button class="case__next" data-ink><span>Next project</span><b></b></button>
+  </div>
+</div>
+<div class="preview" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lenis/1.1.13/lenis.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js';document.head.appendChild(s)"></script>
+
+<script src="projects.js"></script>
+<script>
+/* ===================== ARTWORK (used when a project has no image) ===================== */
+const range = n => [...Array(n).keys()];
+function art(i, v = 0){
+  // a project with its own pictures: img = main picture, gallery = extra pictures for the case study
+  const w = works[i];
+  const pics = w.img ? [w.img, ...(w.gallery || [])] : null;
+  if (pics) return `<img class="art art--img" src="${pics[v % pics.length]}" alt="${w.t}" loading="lazy" decoding="async">`;
+  const vb = ['0 0 400 500','100 120 200 250','0 250 400 250'][v];
+  const S = [
+    `<g class="b">${range(6).map(k=>`<rect x="${40+k*58}" y="${150+k*18}" width="34" height="${300-k*18}" opacity="${.45+k*.11}"/>`).join('')}<circle cx="290" cy="110" r="54"/></g>`,
+    `<g class="s">${[30,70,110,150,190].map(r=>`<circle cx="200" cy="270" r="${r}"/>`).join('')}</g><circle class="b" cx="200" cy="270" r="14"/>`,
+    `<g class="b">${range(4).map(k=>`<rect x="${70+k*34}" y="${90+k*40}" width="200" height="260" opacity="${.25+k*.2}"/>`).join('')}</g><path class="t" d="M372 470H316L372 414Z"/>`,
+    `<g class="s">${range(10).map(k=>`<path d="M0 ${120+k*34}C100 ${60+k*34} 140 ${200+k*34} 220 ${130+k*34}S340 ${70+k*34} 400 ${130+k*34}"/>`).join('')}</g>`,
+    `<path class="b" d="M90 450V230a110 110 0 0 1 220 0V450z"/><g class="t">${range(12).map(k=>`<circle cx="${140+(k%3)*60}" cy="${250+Math.floor(k/3)*50}" r="5"/>`).join('')}</g><circle class="s" cx="330" cy="80" r="30"/>`
+  ];
+  return `<svg class="art" viewBox="${vb}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Abstract artwork for ${works[i].t}"><rect class="a" width="400" height="500"/>${S[i % S.length]}</svg>`;
+}
+
+/* ===================== SHARED HELPERS ===================== */
+const $ = (s, c = document) => c.querySelector(s);
+const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer = matchMedia('(hover:hover) and (pointer:fine)').matches;
+const page = $('#page');
+let lenis = null;
+
+function splitWords(el){
+  const words = el.textContent.trim().split(/\s+/);
+  el.setAttribute('aria-label', words.join(' '));
+  el.innerHTML = words.map(w => `<span class="mask" aria-hidden="true"><span>${w}</span></span>`).join(' ');
+  return $$('.mask>span', el);
+}
+
+/* ===================== BUILD: WORK LIST ===================== */
+(() => {
+  $$('.js-count').forEach(n => n.textContent = `(${String(works.length).padStart(2, '0')})`);
+  const ys = works.map(w => parseInt(w.y, 10)).filter(Boolean);
+  if (ys.length) $('.js-years').textContent = Math.min(...ys) === Math.max(...ys) ? `${Math.min(...ys)}` : `${Math.min(...ys)} to ${Math.max(...ys)}`;
+})();
+$('#work-list').innerHTML = works.map((w, i) => `
+  <li><button class="work__row" data-i="${i}" data-cursor="view" aria-haspopup="dialog">
+    <span class="work__yr">${w.y}</span><span class="work__t">${w.t}</span><span class="work__r">${w.r}</span>
+  </button></li>`).join('');
+
+/* ===================== BUILD: HERO WORDMARK & LOADER LETTERS ===================== */
+const letters = 'HULAIM'.split('');
+$('.hero__word').innerHTML = letters.map(c => `<span class="mask" aria-hidden="true"><span>${c}</span></span>`).join('');
+$('.loader__word').innerHTML = 'Hulaim'.split('').map(c => `<span class="mask"><span>${c}</span></span>`).join('');
+
+/* ===================== BUILD: MARQUEE CLONE ===================== */
+(() => { const g = $('.marquee__group'), t = $('.marquee__track');
+  t.appendChild(g.cloneNode(true)); t.appendChild(g.cloneNode(true)); t.appendChild(g.cloneNode(true));
+  t.style.animationDuration = '40s'; })();
+
+/* ===================== LIVE LOCAL TIME ===================== */
+(() => {
+  const f = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+  const tick = () => { const s = f.format(new Date()); $$('.js-time').forEach(n => n.textContent = s); };
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ===================== FLOATING PREVIEW (work list) =====================
+   Shows the artwork of the project under the pointer. It checks what is really
+   under the pointer on every mouse move AND every scroll, so it disappears as
+   soon as the list scrolls away, even if the mouse itself did not move. */
+function initPreview(){
+  const preview = $('.preview'), list = $('#work-list');
+  if (!preview || !list || !finePointer || reduce) return;
+  let mx = -9999, my = -9999, px = 0, py = 0, sc = .85, shown = false, current = -1, started = false;
+  const show = i => {
+    if (i !== current) { preview.innerHTML = art(i); current = i; }
+    if (!shown) { shown = true; preview.classList.add('is-on'); }
+  };
+  const hide = () => { if (shown) { shown = false; preview.classList.remove('is-on'); } };
+  const check = () => {
+    const el = document.elementFromPoint(mx, my);
+    const row = el && el.closest('.work__row');
+    if (row && list.contains(row)) show(+row.dataset.i); else hide();
+  };
+  window.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    if (!started) { px = mx; py = my; started = true; }
+    check();
+  }, {passive: true});
+  window.addEventListener('scroll', check, {passive: true});
+  window.addEventListener('wheel', () => requestAnimationFrame(check), {passive: true});
+  document.addEventListener('mouseleave', hide);
+  window.addEventListener('blur', hide);
+  (function loop(){
+    const dx = mx - px;
+    px += dx * .14; py += (my - py) * .14;
+    sc += ((shown ? 1 : .85) - sc) * .15;
+    const rot = Math.max(-12, Math.min(12, dx * .08));
+    preview.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0) translate(-50%, -50%) rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+    requestAnimationFrame(loop);
+  })();
+}
+
+/* ===================== SAFETY NET =====================
+   If GSAP can't load (CDN down or blocked), show the site without animation
+   instead of leaving the loading screen on top. */
+function noMotionFallback(){
+  const loader = $('#loader'); if (loader) loader.remove();
+  document.body.classList.remove('is-locked');
+  ['.split', '#about-text'].forEach(sel => $$(sel).forEach(el => el.style.opacity = 1));
+  // accordion
+  $$('.svc__btn').forEach(btn => btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    $$('.svc__btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    btn.setAttribute('aria-expanded', String(!open));
+  }));
+  // mobile menu
+  const menu = $('#menu'), btn = $('#menu-btn');
+  const set = open => { menu.hidden = !open; menu.style.clipPath = 'none'; btn.setAttribute('aria-expanded', open); btn.textContent = open ? 'Close' : 'Menu'; btn.closest('.site-header').style.color = open ? 'var(--sand)' : ''; };
+  btn.addEventListener('click', () => set(menu.hidden));
+  $$('#menu a').forEach(a => a.addEventListener('click', () => set(false)));
+  window.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) set(false); });
+  initPreview();
+}
+// last resort: never keep the loader up for more than 8 seconds
+setTimeout(() => { if ($('#loader') && !window.gsap) noMotionFallback(); }, 8000);
+
+/* ===================== INIT ===================== */
+window.addEventListener('load', () => {
+  if (!window.gsap || !window.ScrollTrigger) { noMotionFallback(); return; }
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------- SMOOTH SCROLL (Lenis) ---------- */
+  if (!reduce && window.Lenis) {
+    lenis = new Lenis({lerp: .1});
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+  const lockScroll = on => { if (lenis) on ? lenis.stop() : lenis.start(); else document.body.classList.toggle('is-locked', on); };
+  const goTo = target => lenis ? lenis.scrollTo(target, {offset: 0, duration: 1.4}) : document.querySelector(target).scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+
+  /* ---------- CUSTOM CURSOR ---------- */
+  if (finePointer && !reduce) {
+    document.body.classList.add('has-cursor');
+    const cur = $('.cursor'), dot = $('i', cur);
+    const cx = gsap.quickTo(cur, 'x', {duration: .25, ease: 'power3'}), cy = gsap.quickTo(cur, 'y', {duration: .25, ease: 'power3'});
+    window.addEventListener('mousemove', e => { cx(e.clientX); cy(e.clientY); });
+    document.addEventListener('mouseover', e => {
+      const el = e.target.closest('[data-cursor],a,button');
+      const state = el ? (el.dataset.cursor || 'link') : 'default';
+      cur.dataset.state = state;
+      dot.textContent = (state === 'view' || state === 'drag') ? state : '';
+      cur.classList.toggle('on-ink', !!e.target.closest('[data-ink]'));
+    });
+  }
+
+  /* ---------- LOADER → CURTAIN → HERO REVEAL ---------- */
+  const heroLetters = $$('.hero__word .mask>span');
+  const intro = gsap.timeline({paused: true});
+  intro.from(heroLetters, {yPercent: 115, duration: 1.3, ease: 'expo.out', stagger: .07})
+       .from('.hero__time,.hero__intro,.hero__cue', {opacity: 0, y: 16, duration: .9, stagger: .12, ease: 'power3.out'}, '-=.9')
+       .from('.hero__orb', {scale: .8, opacity: 0, duration: 1.4, ease: 'power3.out'}, '<');
+  if (reduce) { $('#loader').remove(); intro.progress(1); }
+  else {
+    lockScroll(true);
+    const count = {v: 0}, lc = $('.loader__count');
+    gsap.timeline({onComplete: () => { $('#loader').remove(); lockScroll(false); }})
+      .from('.loader__word .mask>span', {yPercent: 110, duration: 1, ease: 'expo.out', stagger: .09})
+      .to(count, {v: 100, duration: 1.2, ease: 'power2.inOut', onUpdate: () => lc.textContent = Math.round(count.v) + '%'}, 0)
+      .to('.loader__word .mask>span', {yPercent: -110, duration: .6, ease: 'power3.in', stagger: .04}, '+=.2')
+      .to('#loader', {yPercent: -100, duration: 1, ease: 'expo.inOut', onStart: () => intro.play()}, '-=.1');
+  }
+
+  /* ---------- HEADER COLOR SWITCH OVER INVERTED CONTACT ---------- */
+  ScrollTrigger.create({trigger: '#contact', start: 'top 60px', end: 'bottom top', onToggle: s => $('.site-header').classList.toggle('is-ink', s.isActive)});
+
+  /* ---------- SCROLL ANCHORS ---------- */
+  $$('[data-scroll]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const closeMenu = !$('#menu').hidden;
+    if (closeMenu) toggleMenu(false);
+    goTo(a.getAttribute('href'));
+  }));
+
+  /* ---------- MOBILE MENU ---------- */
+  const menu = $('#menu'), menuBtn = $('#menu-btn');
+  function toggleMenu(open){
+    menuBtn.setAttribute('aria-expanded', open);
+    menuBtn.textContent = open ? 'Close' : 'Menu';
+    menuBtn.closest('.site-header').style.color = open ? 'var(--sand)' : '';
+    if (open) {
+      menu.hidden = false; page.inert = false; lockScroll(true);
+      gsap.to(menu, {clipPath: 'inset(0 0 0% 0)', duration: .9, ease: 'expo.inOut'});
+      gsap.fromTo('.menu__list a', {yPercent: 110}, {yPercent: 0, duration: .9, ease: 'expo.out', stagger: .07, delay: .35});
+      gsap.fromTo('.menu__foot', {opacity: 0}, {opacity: 1, delay: .8});
+    } else {
+      lockScroll(false);
+      gsap.to(menu, {clipPath: 'inset(0 0 100% 0)', duration: .7, ease: 'expo.inOut', onComplete: () => menu.hidden = true});
+    }
+  }
+  menuBtn.addEventListener('click', () => toggleMenu(menu.hidden));
+
+  /* ---------- SPLIT TEXT REVEALS (section headings) ---------- */
+  $$('.split').forEach(h => {
+    const w = splitWords(h);
+    if (reduce) return;
+    gsap.from(w, {yPercent: 110, duration: 1.1, ease: 'expo.out', stagger: .07, scrollTrigger: {trigger: h, start: 'top 88%'}});
+  });
+
+  /* ---------- PARALLAX ---------- */
+  if (!reduce) {
+    $$('[data-parallax]').forEach(el => gsap.to(el, {yPercent: +el.dataset.parallax, ease: 'none', scrollTrigger: {trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true}}));
+    gsap.to('.hero__orb', {rotate: 120, ease: 'none', scrollTrigger: {trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true}});
+    gsap.to('.hero__word', {yPercent: -18, ease: 'none', scrollTrigger: {trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true}});
+  }
+
+  /* ---------- WORK LIST: FLOATING PREVIEW ---------- */
+  const preview = $('.preview');
+  initPreview();
+
+  /* ---------- CASE-STUDY OVERLAY ---------- */
+  const cs = $('#case'), csScroll = $('.case__scroll'), closeBtn = $('#case-close');
+  let lastTrigger = null, current = 0;
+  function fillCase(i){
+    const w = works[i]; current = i;
+    $('.case__idx').textContent = `Project ${String(i + 1).padStart(2, '0')} of ${String(works.length).padStart(2, '0')}`;
+    $('.case__meta').textContent = `${w.client}, ${w.y}`;
+    $('#case-title').textContent = w.t;
+    $('.case__hero').innerHTML = art(i);
+    $('.case__facts').innerHTML = `<div><dt>Role</dt><dd>${w.r}</dd></div><div><dt>Year</dt><dd>${w.y}</dd></div><div><dt>Client</dt><dd>${w.client}</dd></div><div><dt>Tools</dt><dd>${w.stack}</dd></div>`;
+    $('.case__text').textContent = w.d;
+    $('.case__strip').innerHTML = [1, 2, 0].map(v => `<div>${art(i, v)}</div>`).join('');
+    $('.case__next b').textContent = works[(i + 1) % works.length].t;
+    csScroll.scrollTop = 0;
+  }
+  function openCase(i, trigger){
+    lastTrigger = trigger; fillCase(i);
+    cs.hidden = false; page.inert = true; lockScroll(true);
+    if (preview) preview.classList.remove('is-on');
+    gsap.fromTo(cs, {clipPath: 'inset(100% 0 0 0)'}, {clipPath: 'inset(0% 0 0 0)', duration: reduce ? 0 : 1, ease: 'expo.inOut', onComplete: () => closeBtn.focus()});
+    if (!reduce) gsap.from('#case-title,.case__meta', {yPercent: 40, opacity: 0, duration: 1, ease: 'expo.out', delay: .5, stagger: .08});
+  }
+  function closeCase(){
+    gsap.to(cs, {clipPath: 'inset(0 0 100% 0)', duration: reduce ? 0 : .8, ease: 'expo.inOut', onComplete: () => {
+      cs.hidden = true; page.inert = false; lockScroll(false); if (lastTrigger) lastTrigger.focus();
+    }});
+  }
+  $$('.work__row').forEach(r => r.addEventListener('click', () => openCase(+r.dataset.i, r)));
+  closeBtn.addEventListener('click', closeCase);
+  $('.case__next').addEventListener('click', () => { fillCase((current + 1) % works.length); gsap.from(cs, {opacity: .4, duration: .5}); });
+  window.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!cs.hidden) closeCase(); else if (!menu.hidden) toggleMenu(false);
+  });
+  /* parallax inside overlay (scroller is the overlay, so use a scroll listener) */
+  csScroll.addEventListener('scroll', () => { if (!reduce) { const a = $('.case__hero .art'); if (a) a.style.transform = `translateY(${-(csScroll.scrollTop * .08)}px)`; } });
+
+  /* drag-to-scroll gallery */
+  const strip = $('.case__strip'); let down = false, sx = 0, sl = 0;
+  strip.addEventListener('pointerdown', e => { down = true; sx = e.clientX; sl = strip.scrollLeft; strip.setPointerCapture(e.pointerId); });
+  strip.addEventListener('pointermove', e => { if (down) strip.scrollLeft = sl - (e.clientX - sx); });
+  ['pointerup', 'pointercancel'].forEach(ev => strip.addEventListener(ev, () => down = false));
+
+  /* ---------- ABOUT: WORD-BY-WORD SCROLL REVEAL ---------- */
+  const at = $('#about-text'), aw = at.textContent.trim().split(/\s+/);
+  at.setAttribute('aria-label', aw.join(' '));
+  at.innerHTML = aw.map(w => `<span class="aw" aria-hidden="true">${w}</span>`).join('');
+  if (reduce) gsap.set('.aw', {opacity: 1});
+  else gsap.to('.aw', {opacity: 1, ease: 'none', stagger: .12, scrollTrigger: {trigger: at, start: 'top 80%', end: 'bottom 45%', scrub: true}});
+
+  /* ---------- SERVICES: ACCORDION ---------- */
+  $$('.svc__btn').forEach(btn => btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    $$('.svc__btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    btn.setAttribute('aria-expanded', String(!open));
+    setTimeout(() => ScrollTrigger.refresh(), 650);
+  }));
+
+  /* ---------- MARQUEE: SCROLL-VELOCITY NUDGE ---------- */
+  if (!reduce) {
+    const track = $('.marquee__track');
+    ScrollTrigger.create({onUpdate: s => {
+      const v = Math.min(Math.abs(s.getVelocity()) / 400, 5);
+      gsap.to(track.getAnimations()[0] || {}, {playbackRate: 1 + v, duration: .3, overwrite: true});
+      gsap.to(track.getAnimations()[0] || {}, {playbackRate: 1, duration: 1.2, delay: .3});
+    }});
+  }
+
+  /* ---------- MAGNETIC ELEMENTS ---------- */
+  if (finePointer && !reduce) $$('[data-magnetic]').forEach(el => {
+    const k = parseFloat(el.dataset.magnetic) || .3;
+    const xt = gsap.quickTo(el, 'x', {duration: .7, ease: 'elastic.out(1,.6)'}), yt = gsap.quickTo(el, 'y', {duration: .7, ease: 'elastic.out(1,.6)'});
+    el.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); xt((e.clientX - r.left - r.width / 2) * k); yt((e.clientY - r.top - r.height / 2) * k); });
+    el.addEventListener('mouseleave', () => { xt(0); yt(0); });
+  });
+});
+</script>
+</body>
+</html>
