@@ -124,7 +124,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button{cursor:none}
 @media(min-width:900px){.case__body{grid-template-columns:20rem 1fr;margin-left:22vw}}
 .case__strip{display:flex;gap:1rem;overflow-x:auto;padding:0 var(--pad) 8vh;scrollbar-width:none;user-select:none}
 .case__strip::-webkit-scrollbar{display:none}
-.case__strip>div{flex:0 0 min(70vw,26rem);aspect-ratio:4/5;border:1px solid var(--ink);overflow:hidden;pointer-events:none}
+.case__strip>div{flex:0 0 min(85vw,40rem);aspect-ratio:16/10;border:1px solid var(--ink);overflow:hidden;pointer-events:none}
 .case__next{display:flex;justify-content:space-between;align-items:baseline;width:100%;padding:3rem var(--pad);background:var(--ink);color:var(--sand)}
 .case__next b{font:400 clamp(2.4rem,8vw,7rem)/1 var(--serif);letter-spacing:-.05em}
 
@@ -555,8 +555,9 @@ window.addEventListener('load', () => {
     $('.case__hero').innerHTML = art(i);
     $('.case__facts').innerHTML = `<div><dt>Role</dt><dd>${w.r}</dd></div><div><dt>Year</dt><dd>${w.y}</dd></div><div><dt>Client</dt><dd>${w.client}</dd></div><div><dt>Tools</dt><dd>${w.stack}</dd></div>`;
     $('.case__text').textContent = w.d;
-    $('.case__strip').innerHTML = [1, 2, 0].map(v => `<div>${art(i, v)}</div>`).join('');
-    $('.case__next b').textContent = works[(i + 1) % works.length].t;
+  const g = w.img ? (w.gallery || []) : null;
+  $('.case__strip').innerHTML = g ? g.map(src => `<div><img class="art art--img" src="${src}" alt="${w.t}" loading="lazy"></div>`).join('') : [1, 2, 0].map(v => `<div>${art(i, v)}</div>`).join('');
+  $('.case__strip').hidden = !!g && !g.length;    $('.case__next b').textContent = works[(i + 1) % works.length].t;
     csScroll.scrollTop = 0;
   }
   function openCase(i, trigger){
