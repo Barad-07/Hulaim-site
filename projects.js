@@ -35,10 +35,5 @@ const works = [
      img:'images/Milka/Milka (1).png',
    gallery:[ 'images/Milka/Milka (2).png', 'images/Milka/Milka (3).png', 'images/Milka/Milka (4).png', 'images/Milka/Milka (5).png', 'images/Milka/Milka (6).png']},
 
-  {t:'Maktab Studio', y:'2023', r:'Portfolio system', client:'Architecture studio', stack:'WordPress, Elementor, ScrollTrigger',
-   d:'A portfolio system for an architecture office with hundreds of projects. Filterable, image-first and easy to keep current.',
-     img:'images/BaradImg/Barad-Site.png',
-   gallery:['images/BaradImg/Barad1.png', 'images/BaradImg/Barad2.png', 'images/BaradImg/Barad3.png', 'images/BaradImg/Barad5.png']},
-
    
   ];
